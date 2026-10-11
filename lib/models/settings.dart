@@ -1,6 +1,6 @@
 enum Sex { male, female }
 
-enum DataMode { none, health, demo }
+enum DataMode { none, health, demo, imported }
 
 class UserSettings {
   String language;

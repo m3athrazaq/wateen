@@ -243,6 +243,13 @@ class S {
   String get appleHealth => _t('Apple Health', 'Apple Health');
   String get healthConnect => _t('Health Connect', 'Health Connect');
   String get demoData => _t('بيانات تجريبية', 'Demo data');
+  String get importedData => _t('ملف مستورد', 'Imported file');
+  String get importFile => _t('استيراد ملف بيانات', 'Import a data file');
+  String importDone(int days) => _t('تم استيراد بيانات $days يوماً', 'Imported $days days of data');
+  String get importFailed => _t('تعذّرت قراءة الملف. اختر ملف بيانات وتين بصيغة JSON.',
+      'Couldn’t read that file. Choose a Wateen data file (JSON).');
+  String get importNote => _t('تتغيّر تواريخ ملف التجربة تلقائياً لينتهي باليوم.',
+      'Test file dates move automatically so the data ends today.');
   String get reconnect => _t('إعادة ربط الصلاحيات', 'Reconnect permissions');
   String get resync => _t('إعادة قراءة كل البيانات', 'Re-read all data');
   String get switchToDemo => _t('التبديل إلى البيانات التجريبية', 'Switch to demo data');

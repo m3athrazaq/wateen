@@ -6,6 +6,17 @@ import 'ctx.dart';
 import 'theme.dart';
 import '../util/clock.dart';
 
+/// Picks a data file, imports it and reports the result. Returns true on success.
+Future<bool> importDataFileFlow(BuildContext context) async {
+  final app = context.app;
+  final s = context.s;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final outcome = await app.importDataFile();
+  if (outcome.cancelled) return false;
+  messenger?.showSnackBar(SnackBar(content: Text(outcome.ok ? s.importDone(outcome.days) : s.importFailed)));
+  return outcome.ok;
+}
+
 Future<void> showConnectProblem(BuildContext context, ConnectStatus status) {
   final s = context.s;
   final app = context.app;
@@ -58,6 +69,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  Future<void> _import() async {
+    final app = context.app;
+    setState(() => _busy = true);
+    final ok = await importDataFileFlow(context);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (ok) await app.completeOnboarding();
+  }
+
   @override
   Widget build(BuildContext context) {
     final page = switch (_step) {
@@ -75,7 +95,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _frame({required List<Widget> children, required Widget action, Widget? secondary, bool back = true}) {
+  Widget _frame({
+    required List<Widget> children,
+    required Widget action,
+    Widget? secondary,
+    Widget? tertiary,
+    bool back = true,
+  }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       child: Column(
@@ -98,6 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Expanded(child: ListView(children: children)),
           action,
           if (secondary != null) ...[const SizedBox(height: 10), secondary],
+          if (tertiary != null) ...[const SizedBox(height: 4), tertiary],
         ],
       ),
     );
@@ -233,6 +260,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       secondary: OutlinedButton(
         onPressed: _busy ? null : () => _connect(DataMode.demo),
         child: Text(s.tryDemo),
+      ),
+      tertiary: TextButton(
+        onPressed: _busy ? null : _import,
+        child: Text(s.importFile),
       ),
     );
   }

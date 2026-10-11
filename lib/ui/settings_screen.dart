@@ -110,28 +110,46 @@ class SettingsScreen extends StatelessWidget {
             ),
           ]),
           section(s.dataSection, [
-            InfoRow(label: s.source, value: app.isDemo ? s.demoData : healthName),
-            if (app.missingTypes.isNotEmpty && !app.isDemo)
+            InfoRow(
+              label: s.source,
+              value: app.isDemo ? s.demoData : (app.isImported ? s.importedData : healthName),
+            ),
+            if (app.isImported) Text(s.importNote, style: WText.small),
+            if (app.missingTypes.isNotEmpty && !app.isDemo && !app.isImported)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(s.missingTypes(app.missingTypes.join(', ')), style: WText.small),
               ),
             const SizedBox(height: 8),
-            if (!app.isDemo)
+            if (!app.isDemo && !app.isImported) ...[
               OutlinedButton(
                 onPressed: () => _connect(context, DataMode.health),
                 child: Text(s.reconnect),
               ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
+            ],
             OutlinedButton(
               onPressed: app.loading ? null : () => app.resync(),
               child: Text(s.resync),
             ),
             const SizedBox(height: 8),
             OutlinedButton(
-              onPressed: () => _connect(context, app.isDemo ? DataMode.health : DataMode.demo),
-              child: Text(app.isDemo ? s.switchToHealth(healthName) : s.switchToDemo),
+              onPressed: app.loading ? null : () => importDataFileFlow(context),
+              child: Text(s.importFile),
             ),
+            const SizedBox(height: 8),
+            if (!app.isDemo) ...[
+              OutlinedButton(
+                onPressed: () => _connect(context, DataMode.demo),
+                child: Text(s.switchToDemo),
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (app.isDemo || app.isImported)
+              OutlinedButton(
+                onPressed: () => _connect(context, DataMode.health),
+                child: Text(s.switchToHealth(healthName)),
+              ),
           ]),
           const SizedBox(height: 8),
           TextButton(
