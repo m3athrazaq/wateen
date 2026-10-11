@@ -1,0 +1,108 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Tool versions
+        run: flutter --version
+
+      - name: Create platform folders (first run only)
+        run: |
+          if [ ! -f android/app/src/main/AndroidManifest.xml ]; then
+            flutter create --org com.m3athrazaq --project-name wateen --platforms android,ios .
+          fi
+
+      - name: Apply Wateen platform settings
+        run: |
+          pip install --quiet pillow
+          python3 tool/patch_platforms.py
+
+      - name: Commit platform changes
+        run: |
+          git config user.name "wateen-ci"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android ios .metadata
+          if ! git diff --cached --quiet; then
+            git commit -m "Generate and configure Android and iOS platform folders"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Tests
+        run: flutter test
+
+      - name: Release signing from secrets
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > android/app/upload-keystore.jks
+            printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=upload\nstoreFile=upload-keystore.jks\n" \
+              "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" > android/key.properties
+          fi
+
+      - name: Build APK and App Bundle
+        run: |
+          flutter build apk --release --build-number=${{ github.run_number }}
+          flutter build appbundle --release --build-number=${{ github.run_number }}
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk dist/wateen.apk
+          cp build/app/outputs/bundle/release/app-release.aab dist/wateen.aab
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wateen-android
+          path: dist/
+
+      - name: Publish to the builds branch
+        run: |
+          cd dist
+          git init -q
+          git checkout -q -b builds
+          git config user.name "wateen-ci"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "run ${{ github.run_number }} commit ${{ github.sha }}" > BUILD.txt
+          git add -A
+          git commit -q -m "Android build ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" builds
+
+      - name: Update the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view android-latest >/dev/null 2>&1 || \
+            gh release create android-latest --title "Wateen Android (latest)" --notes "Latest Android build." --prerelease
+          gh release upload android-latest dist/wateen.apk --clobber
