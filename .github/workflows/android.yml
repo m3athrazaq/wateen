@@ -35,33 +35,35 @@ jobs:
       - name: Create platform folders (first run only)
         run: |
           if [ ! -f android/app/src/main/AndroidManifest.xml ]; then
-            flutter create --org com.m3athrazaq --project-name wateen --platforms android,ios .
+            bash ci/run.sh "flutter create" flutter create --org com.m3athrazaq --project-name wateen --platforms android,ios .
           fi
 
       - name: Apply Wateen platform settings
         run: |
           pip install --quiet pillow
-          python3 tool/patch_platforms.py
+          bash ci/run.sh "patch_platforms" python3 tool/patch_platforms.py
 
       - name: Commit platform changes
+        continue-on-error: true
         run: |
           git config user.name "wateen-ci"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add android ios .metadata
+          git add android ios
+          if [ -f .metadata ]; then git add .metadata; fi
           if ! git diff --cached --quiet; then
-            git commit -m "Generate and configure Android and iOS platform folders"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            git commit -q -m "Generate and configure Android and iOS platform folders"
+            bash ci/run.sh "git pull" git pull --rebase origin main
+            bash ci/run.sh "git push" git push origin HEAD:main
           fi
 
       - name: Dependencies
-        run: flutter pub get
+        run: bash ci/run.sh "pub get" flutter pub get
 
       - name: Analyze
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: bash ci/run.sh "flutter analyze" flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Tests
-        run: flutter test
+        run: bash ci/run.sh "flutter test" flutter test --reporter expanded
 
       - name: Release signing from secrets
         env:
@@ -76,8 +78,8 @@ jobs:
 
       - name: Build APK and App Bundle
         run: |
-          flutter build apk --release --build-number=${{ github.run_number }}
-          flutter build appbundle --release --build-number=${{ github.run_number }}
+          bash ci/run.sh "build apk" flutter build apk --release --build-number=${{ github.run_number }}
+          bash ci/run.sh "build appbundle" flutter build appbundle --release --build-number=${{ github.run_number }}
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-release.apk dist/wateen.apk
           cp build/app/outputs/bundle/release/app-release.aab dist/wateen.aab
@@ -97,9 +99,10 @@ jobs:
           echo "run ${{ github.run_number }} commit ${{ github.sha }}" > BUILD.txt
           git add -A
           git commit -q -m "Android build ${{ github.run_number }}"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" builds
+          bash ../ci/run.sh "push builds" git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" builds
 
       - name: Update the latest release
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
