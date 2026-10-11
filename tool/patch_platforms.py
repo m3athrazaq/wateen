@@ -136,6 +136,14 @@ def patch_gradle():
             s = s[: m.end()] + "\n" + props + s[m.end():]
             signing = (
                 "    signingConfigs {\n"
+                "        // Test builds: one fixed key so each new APK installs over the last.\n"
+                '        create("sideload") {\n'
+                '            storeFile = rootProject.file("../ci/sideload.keystore")\n'
+                '            storeType = "pkcs12"\n'
+                '            storePassword = "android"\n'
+                '            keyAlias = "androiddebugkey"\n'
+                '            keyPassword = "android"\n'
+                "        }\n"
                 '        create("release") {\n'
                 "            if (keystorePropertiesFile.exists()) {\n"
                 '                keyAlias = keystoreProperties["keyAlias"] as String\n'
@@ -153,7 +161,7 @@ def patch_gradle():
             s = re.sub(
                 r'signingConfig\s*=\s*signingConfigs\.getByName\("debug"\)',
                 'signingConfig = if (keystorePropertiesFile.exists()) signingConfigs.getByName("release") '
-                'else signingConfigs.getByName("debug")',
+                'else signingConfigs.getByName("sideload")',
                 s,
                 count=1,
             )
