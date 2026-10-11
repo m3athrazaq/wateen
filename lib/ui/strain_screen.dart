@@ -9,6 +9,7 @@ import 'theme.dart';
 import 'widgets/charts.dart';
 import 'widgets/common.dart';
 import 'widgets/ring.dart';
+import '../util/clock.dart';
 
 class StrainScreen extends StatelessWidget {
   final DateTime day;
@@ -27,7 +28,7 @@ class StrainScreen extends StatelessWidget {
       );
     }
     final i = m.inputs;
-    final maxHr = app.settings.maxHrAt(DateTime.now()).toDouble();
+    final maxHr = app.settings.maxHrAt(clockNow()).toDouble();
     final week = [for (var k = 6; k >= 0; k--) app.metricsFor(addDays(day, -k))];
 
     String status;

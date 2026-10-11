@@ -11,6 +11,7 @@ import 'format.dart';
 import 'theme.dart';
 import 'widgets/charts.dart';
 import 'widgets/common.dart';
+import '../util/clock.dart';
 
 enum TrendMetric { recovery, hrv, rhr, sleepHours, sleepScore, strain, steps, stress, respiratory }
 
@@ -129,7 +130,7 @@ class _TrendsScreenState extends State<TrendsScreen> {
     final app = context.app;
     final s = context.s;
     final f = context.fmt;
-    final today = dayOf(DateTime.now());
+    final today = dayOf(clockNow());
     final spec = _spec(_metric, s, f);
 
     final days = [for (var i = _days - 1; i >= 0; i--) addDays(today, -i)];
@@ -142,7 +143,7 @@ class _TrendsScreenState extends State<TrendsScreen> {
     if (_days <= 7) {
       labels = [for (final d in days) f.weekdayShort(d)];
     } else {
-      labels = [for (final d in days) f.dateShort(d)];
+      labels = [for (final d in days) f.dayMonth(d)];
     }
 
     double? bandLo;
@@ -271,21 +272,25 @@ class _WeekReport extends StatelessWidget {
     final app = context.app;
     final s = context.s;
     final f = context.fmt;
-    final today = dayOf(DateTime.now());
+    final today = dayOf(clockNow());
     final thisWeek = [for (var i = 0; i < 7; i++) app.metricsFor(addDays(today, -i))].whereType<DayMetrics>().toList();
     final lastWeek = [for (var i = 7; i < 14; i++) app.metricsFor(addDays(today, -i))].whereType<DayMetrics>().toList();
 
     double? avg(List<DayMetrics> l, double? Function(DayMetrics) g) => meanOf(l.map(g).whereType<double>());
     int workouts(List<DayMetrics> l) => l.fold(0, (a, m) => a + m.inputs.workouts.length);
 
-    Widget cell(String label, double? now, double? before, String Function(double) fmt, {bool higherBetter = true}) {
+    /// [deltaFmt] formats the change; [higherBetter] null keeps it neutral.
+    Widget cell(String label, double? now, double? before, String Function(double) fmt,
+        {required String Function(double) deltaFmt, bool? higherBetter = true}) {
       String? delta;
       Color color = WColors.ash;
       if (now != null && before != null) {
         final d = now - before;
-        delta = f.signed(d, digits: d.abs() < 10 ? 1 : 0);
-        final good = higherBetter ? d >= 0 : d <= 0;
-        color = good ? WColors.palm : WColors.madder;
+        delta = deltaFmt(d);
+        if (higherBetter != null && d.abs() > 1e-9) {
+          final good = higherBetter ? d > 0 : d < 0;
+          color = good ? WColors.palm : WColors.madder;
+        }
       }
       return Expanded(
         child: Column(
@@ -311,12 +316,16 @@ class _WeekReport extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               cell(s.recovery, avg(thisWeek, (m) => m.recovery?.toDouble()), avg(lastWeek, (m) => m.recovery?.toDouble()),
-                  (v) => f.pct(v)),
+                  (v) => f.pct(v),
+                  deltaFmt: (d) => f.signed(d)),
               cell(s.sleep, avg(thisWeek, (m) => m.inputs.sleep?.asleepMin), avg(lastWeek, (m) => m.inputs.sleep?.asleepMin),
-                  (v) => f.duration(v)),
+                  (v) => f.duration(v),
+                  deltaFmt: (d) => d.abs() < 0.5 ? f.duration(0) : (d > 0 ? f.plus(f.duration(d)) : f.minus(f.duration(-d)))),
               cell(s.strain, avg(thisWeek, (m) => m.inputs.hasAnyData ? m.strain : null),
-                  avg(lastWeek, (m) => m.inputs.hasAnyData ? m.strain : null), (v) => f.dec1(v)),
-              cell(s.workouts, workouts(thisWeek).toDouble(), workouts(lastWeek).toDouble(), (v) => f.int0(v)),
+                  avg(lastWeek, (m) => m.inputs.hasAnyData ? m.strain : null), (v) => f.dec1(v),
+                  deltaFmt: (d) => f.signed(d, digits: 1), higherBetter: null),
+              cell(s.workouts, workouts(thisWeek).toDouble(), workouts(lastWeek).toDouble(), (v) => f.int0(v),
+                  deltaFmt: (d) => f.signed(d), higherBetter: null),
             ],
           ),
         ],

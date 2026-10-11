@@ -44,7 +44,7 @@ class PanelTitle extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(title, style: WText.title.copyWith(fontSize: 16))),
-          if (trailing != null) trailing!,
+          ?trailing,
           // chevron_right mirrors itself in right-to-left layouts.
           if (chevron) const Icon(Icons.chevron_right, color: WColors.faint, size: 22),
         ],
@@ -130,7 +130,8 @@ class EmptyNote extends StatelessWidget {
   const EmptyNote({super.key, required this.icon, required this.title, required this.body, this.action});
 
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) => Center(
+        child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -142,6 +143,7 @@ class EmptyNote extends StatelessWidget {
             Text(body, style: WText.bodyDim, textAlign: TextAlign.center),
             if (action != null) ...[const SizedBox(height: 20), action!],
           ],
+        ),
         ),
       );
 }

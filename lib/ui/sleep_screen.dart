@@ -9,6 +9,7 @@ import 'theme.dart';
 import 'widgets/charts.dart';
 import 'widgets/common.dart';
 import 'widgets/ring.dart';
+import '../util/clock.dart';
 
 class SleepScreen extends StatelessWidget {
   final DateTime day;
@@ -100,9 +101,9 @@ class SleepScreen extends StatelessWidget {
                 Text(s.needBreakdown, style: WText.label),
                 const SizedBox(height: 4),
                 InfoRow(label: s.needBase, value: f.duration(need.baseMin)),
-                if (need.strainMin >= 1) InfoRow(label: s.needStrain, value: '+${f.duration(need.strainMin)}'),
-                if (need.debtMin >= 1) InfoRow(label: s.needDebt, value: '+${f.duration(need.debtMin)}'),
-                if (need.napMin >= 1) InfoRow(label: s.needNap, value: '−${f.duration(need.napMin)}'),
+                if (need.strainMin >= 1) InfoRow(label: s.needStrain, value: f.plus(f.duration(need.strainMin))),
+                if (need.debtMin >= 1) InfoRow(label: s.needDebt, value: f.plus(f.duration(need.debtMin))),
+                if (need.napMin >= 1) InfoRow(label: s.needNap, value: f.minus(f.duration(need.napMin))),
               ],
             ),
           ),
@@ -217,7 +218,7 @@ class _CoachPanel extends StatelessWidget {
     final m = app.metricsFor(day)!;
     final need = SleepCoach.tonightNeed(app.settings, app.metrics, m);
     final eff = meanOf(app.lastDays(7).where((d) => d.inputs.sleep != null).map((d) => d.inputs.sleep!.efficiency)) ?? 0.9;
-    final opts = SleepCoach.options(app.settings, need, DateTime.now(), efficiency: eff);
+    final opts = SleepCoach.options(app.settings, need, clockNow(), efficiency: eff);
     final names = [s.coachPeak, s.coachPerform, s.coachGetBy];
     return Panel(
       child: Column(

@@ -26,6 +26,7 @@ import 'package:wateen/ui/stress_screen.dart';
 import 'package:wateen/ui/theme.dart';
 import 'package:wateen/ui/today_screen.dart';
 import 'package:wateen/ui/trends_screen.dart';
+import 'package:wateen/util/clock.dart';
 
 final String? _out = Platform.environment['WATEEN_SHOTS'];
 const double _dpr = 1.5;
@@ -108,6 +109,12 @@ Future<void> _shot(
     await before();
     await tester.pump(const Duration(seconds: 1));
   }
+  // Decode images (the app mark) for real before capturing.
+  await tester.runAsync(() async {
+    for (final e in find.byType(Image).evaluate()) {
+      await precacheImage((e.widget as Image).image, e);
+    }
+  });
   await tester.pump(const Duration(milliseconds: 200));
   final error = tester.takeException();
   if (error != null) _problems.add('$name: $error');
@@ -124,6 +131,10 @@ void main() {
     Directory(_out!).createSync(recursive: true);
     await tester.runAsync(_loadFonts);
     addTearDown(tester.view.reset);
+    // An evening view: a full day of strain, stress and tonight's bedtime.
+    final real = DateTime.now();
+    setClockForTesting(DateTime(real.year, real.month, real.day, 21, 30));
+    addTearDown(() => setClockForTesting(null));
 
     for (final lang in ['ar', 'en']) {
       final c = (await tester.runAsync(() => _controller(lang)))!;

@@ -68,6 +68,7 @@ class S {
   String guidanceRed(String hi) =>
       _t('خفّف اليوم: إجهاد لا يتجاوز $hi، ونوم مبكر الليلة.', 'Take it easy: keep strain under $hi and get to bed early.');
   String ofNeed(String need) => _t('من احتياج $need', 'of $need needed');
+  String ofShort(String need) => _t('من $need', 'of $need');
   String targetRange(String lo, String hi) => _t('الهدف $lo–$hi', 'Target $lo–$hi');
   String get tonightTitle => _t('موعد نومك الليلة', 'Tonight’s bedtime');
   String needTonight(String d) => _t('تحتاج الليلة $d من النوم.', 'You need $d of sleep tonight.');

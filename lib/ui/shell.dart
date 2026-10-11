@@ -6,6 +6,7 @@ import 'journal_screen.dart';
 import 'more_screen.dart';
 import 'today_screen.dart';
 import 'trends_screen.dart';
+import '../util/clock.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -68,7 +69,7 @@ class AppScopeRefresh {
   static void maybeRefresh(BuildContext context) {
     final app = AppScope.read(context);
     final last = app.lastSync;
-    if (last == null || DateTime.now().difference(last) > const Duration(minutes: 10)) {
+    if (last == null || clockNow().difference(last) > const Duration(minutes: 10)) {
       app.refresh();
     }
   }

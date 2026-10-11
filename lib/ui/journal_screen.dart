@@ -6,6 +6,7 @@ import '../util/dates.dart';
 import 'ctx.dart';
 import 'theme.dart';
 import 'widgets/common.dart';
+import '../util/clock.dart';
 
 class JournalScreen extends StatefulWidget {
   const JournalScreen({super.key});
@@ -16,7 +17,7 @@ class JournalScreen extends StatefulWidget {
 
 class _JournalScreenState extends State<JournalScreen> {
   int _view = 0;
-  DateTime _day = addDays(dayOf(DateTime.now()), -1);
+  DateTime _day = addDays(dayOf(clockNow()), -1);
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +56,7 @@ class _JournalScreenState extends State<JournalScreen> {
     final app = context.app;
     final s = context.s;
     final f = context.fmt;
-    final today = dayOf(DateTime.now());
+    final today = dayOf(clockNow());
     final entry = app.journal[dayKey(_day)];
     String dayLabel;
     if (sameDay(_day, today)) {

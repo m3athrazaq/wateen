@@ -71,7 +71,7 @@ jobs:
         run: |
           export FLUTTER_ROOT="${FLUTTER_ROOT:-$(dirname "$(dirname "$(command -v flutter)")")}"
           mkdir -p dist/screens
-          WATEEN_SHOTS="$PWD/dist/screens" bash ci/run.sh "screenshots" flutter test test/screenshots_test.dart --reporter expanded
+          TZ=Asia/Kuwait WATEEN_SHOTS="$PWD/dist/screens" bash ci/run.sh "screenshots" flutter test test/screenshots_test.dart --reporter expanded
 
       - name: Release signing from secrets
         env:
@@ -82,6 +82,10 @@ jobs:
             echo "$KEYSTORE_B64" | base64 -d > android/app/upload-keystore.jks
             printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=upload\nstoreFile=upload-keystore.jks\n" \
               "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" > android/key.properties
+          else
+            # Test builds: one fixed key so each new APK installs over the last.
+            mkdir -p ~/.android
+            cp ci/sideload.keystore ~/.android/debug.keystore
           fi
 
       - name: Build APK and App Bundle

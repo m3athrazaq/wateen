@@ -19,6 +19,7 @@ import 'vitals.dart';
 import 'widgets/charts.dart';
 import 'widgets/common.dart';
 import 'widgets/ring.dart';
+import '../util/clock.dart';
 
 class TodayScreen extends StatefulWidget {
   final VoidCallback onOpenJournal;
@@ -36,7 +37,7 @@ class _TodayScreenState extends State<TodayScreen> {
     final app = context.app;
     final s = context.s;
     final f = context.fmt;
-    final now = DateTime.now();
+    final now = clockNow();
     final today = dayOf(now);
     final latest = app.latest;
     final day = _day ?? latest?.date ?? today;
@@ -285,7 +286,7 @@ class _SleepTile extends StatelessWidget {
                 Text(sleep == null ? '—' : f.duration(sleep.asleepMin),
                     style: WText.title.copyWith(fontFeatures: WText.tabular)),
                 if (m.sleepNeed != null)
-                  Text(s.ofNeed(f.duration(m.sleepNeed!.totalMin)), style: WText.small, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(s.ofShort(f.duration(m.sleepNeed!.totalMin)), style: WText.small, maxLines: 1, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -337,7 +338,7 @@ class _TonightPanel extends StatelessWidget {
     final f = context.fmt;
     final need = SleepCoach.tonightNeed(app.settings, app.metrics, m);
     final eff = meanOf(app.lastDays(7).where((d) => d.inputs.sleep != null).map((d) => d.inputs.sleep!.efficiency)) ?? 0.9;
-    final opts = SleepCoach.options(app.settings, need, DateTime.now(), efficiency: eff);
+    final opts = SleepCoach.options(app.settings, need, clockNow(), efficiency: eff);
     final names = [s.coachPeak, s.coachPerform, s.coachGetBy];
     return Panel(
       child: Column(

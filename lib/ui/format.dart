@@ -43,7 +43,7 @@ class Fmt {
     final total = minutes.round();
     final h = total ~/ 60;
     final m = total % 60;
-    if (ar) return h > 0 ? '${h}س ${m}د' : '${m}د';
+    if (ar) return h > 0 ? '$hس $mد' : '$mد';
     return h > 0 ? '${h}h ${m}m' : '${m}m';
   }
 
@@ -55,12 +55,23 @@ class Fmt {
 
   String pct(num v) => '${v.round()}%';
 
+  /// Left-to-right mark: keeps a leading sign attached to its number in
+  /// right-to-left text.
+  String get _lrm => ar ? '\u200E' : '';
+
   /// Signed value with a real minus sign.
   String signed(num v, {int digits = 0}) {
     final s = v.abs().toStringAsFixed(digits);
     if (v.abs() < 0.5 * _unit(digits)) return s;
-    return v > 0 ? '+$s' : '−$s';
+    return v > 0 ? '$_lrm+$s' : '$_lrm−$s';
   }
+
+  String plus(String s) => '$_lrm+$s';
+
+  String minus(String s) => '$_lrm−$s';
+
+  /// "9/10" — compact day/month for dense chart axes.
+  String dayMonth(DateTime d) => '${d.day}/${d.month}';
 
   static double _unit(int digits) {
     var u = 1.0;

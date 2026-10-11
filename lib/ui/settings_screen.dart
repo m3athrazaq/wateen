@@ -6,6 +6,7 @@ import 'ctx.dart';
 import 'onboarding_screen.dart';
 import 'theme.dart';
 import 'widgets/common.dart';
+import '../util/clock.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -16,7 +17,7 @@ class SettingsScreen extends StatelessWidget {
     final s = context.s;
     final f = context.fmt;
     final st = app.settings;
-    final now = DateTime.now();
+    final now = clockNow();
     final healthName = app.isIOS ? s.appleHealth : s.healthConnect;
 
     Widget section(String title, List<Widget> children) => Padding(

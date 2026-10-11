@@ -53,6 +53,8 @@ class DemoHealthSource implements HealthSource {
 
   void _night(RawBundle b, DateTime d, DateTime from, DateTime to) {
     final n = NightPlan.of(d);
+    // Watches save a night after waking, so an unfinished night is not shown.
+    if (n.wake.isAfter(to)) return;
     final r = math.Random(_dayNo(d) * 13 + 5);
     bool ok(DateTime t) => !t.isBefore(from) && t.isBefore(to);
 

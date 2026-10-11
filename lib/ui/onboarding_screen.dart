@@ -4,6 +4,7 @@ import '../data/health_source.dart';
 import '../models/settings.dart';
 import 'ctx.dart';
 import 'theme.dart';
+import '../util/clock.dart';
 
 Future<void> showConnectProblem(BuildContext context, ConnectStatus status) {
   final s = context.s;
@@ -144,7 +145,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final s = context.s;
     final f = context.fmt;
     final st = app.settings;
-    final now = DateTime.now();
+    final now = clockNow();
     return _frame(
       children: [
         const SizedBox(height: 16),

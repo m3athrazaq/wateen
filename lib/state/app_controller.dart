@@ -18,6 +18,7 @@ import '../models/metrics.dart';
 import '../models/settings.dart';
 import '../util/dates.dart';
 import '../util/stats.dart';
+import '../util/clock.dart';
 
 class AppController extends ChangeNotifier {
   static const int keepDays = 120;
@@ -80,14 +81,14 @@ class AppController extends ChangeNotifier {
   }
 
   List<DayMetrics> lastDays(int n, {DateTime? until}) {
-    final end = dayOf(until ?? DateTime.now());
+    final end = dayOf(until ?? clockNow());
     final start = addDays(end, -(n - 1));
     return metrics.where((m) => !m.date.isBefore(start) && !m.date.isAfter(end)).toList();
   }
 
   List<JournalInsight> get insights => journalInsights(journal, metrics);
 
-  BodyAgeResult? get bodyAge => estimateBodyAge(metrics, settings, DateTime.now());
+  BodyAgeResult? get bodyAge => estimateBodyAge(metrics, settings, clockNow());
 
   // --------------------------------------------------------------- actions
 
@@ -119,7 +120,7 @@ class AppController extends ChangeNotifier {
     error = null;
     notifyListeners();
     try {
-      final now = DateTime.now();
+      final now = clockNow();
       final today = dayOf(now);
       int days;
       if (full || _inputs.isEmpty || lastSync == null) {
@@ -186,7 +187,7 @@ class AppController extends ChangeNotifier {
 
   /// Drops journal days that still hold exactly the generated demo answers.
   void _removeDemoJournal() {
-    final now = DateTime.now();
+    final now = clockNow();
     final demo = DemoHealthSource.journalFor(addDays(dayOf(now), -keepDays), dayOf(now));
     journal.removeWhere((k, v) {
       final d = demo[k];
@@ -201,7 +202,7 @@ class AppController extends ChangeNotifier {
   }
 
   void _seedDemoJournal() {
-    final now = DateTime.now();
+    final now = clockNow();
     final demo = DemoHealthSource.journalFor(addDays(dayOf(now), -firstSyncDays), addDays(dayOf(now), -1));
     demo.forEach((k, v) => journal.putIfAbsent(k, () => v));
     store.saveJournal(journal);
