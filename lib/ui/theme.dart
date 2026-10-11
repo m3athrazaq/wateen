@@ -19,7 +19,7 @@ class WColors {
   static const palm = Color(0xFF46B07A);
   static const indigo = Color(0xFF7484FF);
   static const lavender = Color(0xFFA48FF2);
-  static const stress = Color(0xFFE98A4E);
+  static const stress = Color(0xFFD1453B);
   static const calm = Color(0xFF4FB3BF);
 
   static Color recovery(int? r) => r == null ? faint : recoveryZone(zoneOf(r));

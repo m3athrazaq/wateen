@@ -93,7 +93,7 @@ class _BarPainter extends CustomPainter {
         }
       }
       if (c.labels != null && i % labelEvery == 0 && i < c.labels!.length) {
-        _text(canvas, c.labels![i], Offset(cx, size.height - labelH + 4), _axis, width: math.max(slot * labelEvery, 24.0));
+        _text(canvas, c.labels![i], Offset(cx, size.height - labelH + 4), _axis, width: math.max(slot * labelEvery, 56.0));
       }
     }
 

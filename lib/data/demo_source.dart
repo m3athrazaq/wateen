@@ -143,7 +143,8 @@ class DemoHealthSource implements HealthSource {
     for (var t = wake; t.isBefore(bed); t = t.add(const Duration(minutes: 15))) {
       final e = t.add(const Duration(minutes: 15));
       if (inWorkout(t)) continue;
-      final c = inBout(t) ? 900 + r.nextInt(500) : 40 + r.nextInt(160);
+      final walking = bouts.any((x) => x.$1.isBefore(e) && x.$2.isAfter(t));
+      final c = walking ? 900 + r.nextInt(500) : 40 + r.nextInt(160);
       if (ok(t)) {
         b.stepSamples.add(StepSample(t, e, c.toDouble()));
         steps += c;

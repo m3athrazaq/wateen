@@ -29,7 +29,7 @@ class StressScreen extends StatelessWidget {
     final start = st.bucketStart ?? m.inputs.windowStart;
     final labels = <String>[
       for (var k = 0; k < st.buckets.length; k++)
-        k % 4 == 0 ? f.clock(start.add(Duration(minutes: 30 * k))).split(' ').first : '',
+        k % 8 == 0 ? f.clock(start.add(Duration(minutes: 30 * k))) : '',
     ];
 
     Widget level(String name, Color color, double minutes) => Padding(
